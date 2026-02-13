@@ -1,34 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ------------------------------------------------------------------
-# Hard-coded overlay image (black background + white text)
-# ------------------------------------------------------------------
 OVERLAY_IMG="/home/muhammed-emin-eser/desk/din/backupOld.png"
 
-# ------------------------------------------------------------------
-# Target box inside overlay where video must fit (aspect ratio kept)
-# ------------------------------------------------------------------
 X=313
 Y=214
-BOX_W=$((1034-313))   # 721
-BOX_H=$((284-214))    # 70
+BOX_W=$((1034-313))
+BOX_H=$((284-214))
 
-# ------------------------------------------------------------------
-# Remove black background from overlay image
-# ------------------------------------------------------------------
 SIMILARITY="0.10"
 BLEND="0.00"
 
-# ------------------------------------------------------------------
-# LOSSLESS encode (no quality loss)
-# ------------------------------------------------------------------
 V_CODEC="libx264"
 V_PRESET="ultrafast"
 V_CRF="0"
 PIX_FMT="yuv420p"
 
-# ------------------------------------------------------------------
 usage() {
   echo "Usage:"
   echo "  $0 --video INPUT.mp4 --out OUTPUT.mp4"
@@ -59,18 +46,16 @@ process_one() {
     -loop 1 -i "$OVERLAY_IMG" \
     -filter_complex "
       [1:v]format=rgba,chromakey=0x000000:${SIMILARITY}:${BLEND}[txt];
-
       [0:v]scale=${BOX_W}:${BOX_H}:force_original_aspect_ratio=decrease,
            pad=${BOX_W}:${BOX_H}:(ow-iw)/2:(oh-ih)/2:color=black@0,
            format=rgba[vidbox];
-
       color=c=black@1.0:s=${w}x${h}:r=30,format=rgba[base];
-
-      [base][vidbox]overlay=${X}:${Y}:format=auto[withvid];
-      [withvid][txt]overlay=0:0:format=auto,
+      [base][vidbox]overlay=${X}:${Y}:shortest=1:eof_action=pass[withvid];
+      [withvid][txt]overlay=0:0:shortest=1,
       scale=trunc(iw/2)*2:trunc(ih/2)*2[outv]
     " \
     -map "[outv]" -map 0:a? \
+    -shortest \
     -c:v "${V_CODEC}" -preset "${V_PRESET}" -crf "${V_CRF}" -pix_fmt "${PIX_FMT}" \
     -c:a copy \
     "$out_video"
@@ -79,7 +64,7 @@ process_one() {
 main() {
   require_tools
 
-  [[ -f "$OVERLAY_IMG" ]] || { echo "Overlay image not found: $OVERLAY_IMG"; exit 1; }
+  [[ -f "$OVERLAY_IMG" ]] || { echo "Overlay image not found"; exit 1; }
 
   local mode=""
   local in_video=""
