@@ -3,10 +3,16 @@ set -euo pipefail
 
 OVERLAY_IMG="/home/muhammed-emin-eser/desk/din/backupOld.png"
 
+# Ursprüngliche linke obere Ecke
 X=313
 Y=214
-BOX_W=$((1034-313))
-BOX_H=$((284-214))
+
+# Ursprüngliche rechte untere Ecke
+X2=1034
+Y2=284
+
+# Skalierfaktor (>1 = größer, <1 = kleiner)
+SCALE_FACTOR="1.5"
 
 SIMILARITY="0.10"
 BLEND="0.00"
@@ -41,16 +47,33 @@ process_one() {
   local w h
   read -r w h < <(img_size)
 
+  # Ursprüngliche Box
+  local orig_w=$((X2 - X))
+  local orig_h=$((Y2 - Y))
+
+  # Mittelpunkt der Box
+  local center_x=$((X + orig_w / 2))
+  local center_y=$((Y + orig_h / 2))
+
+  # Neue Breite/Höhe proportional skaliert
+  local new_w=$(printf "%.0f" "$(echo "$orig_w * $SCALE_FACTOR" | bc -l)")
+  local new_h=$(printf "%.0f" "$(echo "$orig_h * $SCALE_FACTOR" | bc -l)")
+
+  # Neue linke obere Ecke so berechnet,
+  # dass um den Mittelpunkt herum skaliert wird
+  local new_x=$((center_x - new_w / 2))
+  local new_y=$((center_y - new_h / 2))
+
   ffmpeg -nostdin -y -threads 16 \
     -i "$in_video" \
     -loop 1 -i "$OVERLAY_IMG" \
     -filter_complex "
       [1:v]format=rgba,chromakey=0x000000:${SIMILARITY}:${BLEND}[txt];
-      [0:v]scale=${BOX_W}:${BOX_H}:force_original_aspect_ratio=decrease,
-           pad=${BOX_W}:${BOX_H}:(ow-iw)/2:(oh-ih)/2:color=black@0,
+      [0:v]scale=${new_w}:${new_h}:force_original_aspect_ratio=decrease,
+           pad=${new_w}:${new_h}:(ow-iw)/2:(oh-ih)/2:color=black@0,
            format=rgba[vidbox];
       color=c=black@1.0:s=${w}x${h}:r=30,format=rgba[base];
-      [base][vidbox]overlay=${X}:${Y}:shortest=1:eof_action=pass[withvid];
+      [base][vidbox]overlay=${new_x}:${new_y}:shortest=1:eof_action=pass[withvid];
       [withvid][txt]overlay=0:0:shortest=1,
       scale=trunc(iw/2)*2:trunc(ih/2)*2[outv]
     " \
@@ -64,7 +87,7 @@ process_one() {
 main() {
   require_tools
 
-  [[ -f "$OVERLAY_IMG" ]] || { echo "Overlay image not found"; exit 1; }
+  [[ -f "$OVERLAY_IMG" ]] || { echo "Overlay image not found: $OVERLAY_IMG"; exit 1; }
 
   local mode=""
   local in_video=""
