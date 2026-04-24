@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# Data — large media files, not committed
+# See README.md § Data Layout for a full description of what lives here.
+quran/maher_playlist/
+quran/saud_shureim/
+quran/final_maher/
+quran/final_maher_bu/
+quran/maher_workaround/
+quran/OpenCV/
+
+# quran/eng_translation/chunked_translation/ IS committed (plain text, small)
+# quran/eng_translation/*.pdf is NOT committed (copyright)
+quran/eng_translation/*.pdf
+
+# Transcription pipeline — model weights, large tmp artefacts
+Transcribe-Translation/.venv/
+Transcribe-Translation/__pycache__/
+Transcribe-Translation/tests/frames/
+Transcribe-Translation/data/whisper/
+Transcribe-Translation/tmp/
+
+# Scratch / working images
+image.png
+backupOld.png
+img_bg_to_rm.png

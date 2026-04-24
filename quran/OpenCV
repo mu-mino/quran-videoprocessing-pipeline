@@ -1,0 +1,46 @@
+#!/bin/bash
+
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 <dir1> <dir2>"
+    exit 1
+fi
+
+DIR1="$1"
+DIR2="$2"
+
+get_duration() {
+    ffprobe -v error \
+        -show_entries format=duration \
+        -of default=noprint_wrappers=1:nokey=1 \
+        "$1"
+}
+
+for file1 in "$DIR1"/*\(*\)*; do
+    [ -e "$file1" ] || continue
+
+    # Zahl (n) extrahieren
+    n=$(basename "$file1" | grep -oP '\(\K[0-9]+(?=\))')
+
+    [ -z "$n" ] && continue
+
+    # passendes Gegenstück suchen
+    file2=$(find "$DIR2" -maxdepth 1 -type f -name "*($n)*" | head -n 1)
+
+    [ -z "$file2" ] && continue
+
+    dur1=$(get_duration "$file1")
+    dur2=$(get_duration "$file2")
+
+    # Differenz berechnen (float)
+    diff=$(awk -v a="$dur1" -v b="$dur2" 'BEGIN {print (a>b?a-b:b-a)}')
+
+    # Prüfen > 0.1
+    awk -v d="$diff" 'BEGIN {exit !(d > 0.01)}'
+    if [ $? -eq 0 ]; then
+        echo "Difference > 0.1s:"
+        echo "  $file1 ($dur1 s)"
+        echo "  $file2 ($dur2 s)"
+        echo "  diff: $diff s"
+        echo
+    fi
+done
