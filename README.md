@@ -4,7 +4,7 @@ A multi-stage pipeline that takes raw YouTube recitation videos of the Holy Qura
 and produces per-verse, timestamped mapping files — pairing each moment in the
 audio with its English verse text.
 
-> **Status:** Transcription & matching phase (`Transcribe-Translation/`) is still
+> **Status:** Transcription & matching phase (`ayah-aligner/`) is still
 > in active development. All earlier pipeline stages are complete.
 
 ---
@@ -52,7 +52,7 @@ Raw MP4 videos
         │
         ├──► [read_pdf_to_txt.py]    Split English translation PDF → 114 .txt chunks
         │
-        └──► [Transcribe-Translation/]
+        └──► [ayah-aligner/]
                     │
                     ├── videowindow.py      Segment video by black-screen transitions
                     ├── recognizecircle.py  Count verse-number ring markers per frame
@@ -137,9 +137,9 @@ the production version:
 The `finish.png` overlay frame was manually assembled on mobile from screenshots
 of the مصحف المدينة App's Islamic border and banner elements using a photo editor.
 
-### 5. `Transcribe-Translation/` — core annotation pipeline
+### 5. `ayah-aligner/` — core annotation pipeline
 
-See [`Transcribe-Translation/README.md`](Transcribe-Translation/README.md) for
+See [`ayah-aligner/README.md`](ayah-aligner/README.md) for
 full module documentation. Summary:
 
 | Module | Role |
@@ -168,7 +168,7 @@ quran/
 │   └── Quran_cropped/       Side-bars removed; used as video input to main pipeline.
 │
 ├── final_maher/             Final processed audio files (ffmpeg-extracted, full length).
-│   └── …                    Used as --audio input to Transcribe-Translation.
+│   └── …                    Used as --audio input to ayah-aligner.
 │
 ├── saud_shureim/            Alternative reciter (Sheikh Saud Al-Shuraim).
 │   └── …                    Not yet processed; reserved for future extension.
@@ -202,7 +202,7 @@ quran/
 
 ## Output Format
 
-Each processed surah produces a `.mapping` file in `Transcribe-Translation/output/`:
+Each processed surah produces a `.mapping` file in `ayah-aligner/output/`:
 
 ```
 [MM:SS] :: <surah title>\n<metadata>
@@ -218,7 +218,7 @@ Each processed surah produces a `.mapping` file in `Transcribe-Translation/outpu
 
 ```bash
 # 1. Install dependencies
-cd Transcribe-Translation
+cd ayah-aligner 
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
