@@ -152,6 +152,18 @@ full module documentation. Summary:
 | `main.py` | Full pipeline orchestrator |
 | `auto_range_runner.py` | Async batch runner over a surah ID range |
 
+### 6. `yt-bulk` — YouTube bulk uploader *(separate repository)*
+
+Reusable Python tool that bulk-uploads the processed videos to YouTube via the
+Data API v3. Handles multi-language metadata (11 languages), per-item thumbnail
+upload, resumable upload with retry/backoff, tag deduplication, and an
+idempotent upload log so interrupted batches resume cleanly.
+
+| Branch | Contents |
+|---|---|
+| `main` | Generic template — remove Quran specifics, configure for any batch upload |
+| `legacy/quran-pipeline` | Original implementation: 114 surahs, Quran-specific SEO tags, AI-generated localization data (Arabic/EN/ID/UR/BN/TR/FR/FA/MS/DE/RU) |
+
 ---
 
 ## Data Layout
